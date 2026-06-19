@@ -33,11 +33,7 @@ models:
   dbt_project:
     staging:
       +materialized: view
-    # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
 
 seeds:
   dbt_project:
-    raw_seed__subscription_status:
-      +schema: raw
+    +schema: raw
