@@ -9,7 +9,7 @@ WITH source AS (
         IS_ACTIVE
     FROM {{ ref('stg_seed__subscription_status') }}
 )
-, periodized AS (
+, period_snapshot AS (
     {% for grain in time_grains %}
         SELECT
             USER_ID,
@@ -28,7 +28,7 @@ WITH source AS (
             PARTITION BY USER_ID, TIME_GRAIN
             ORDER BY TIME_PERIOD
         ) AS PREVIOUS_IS_ACTIVE
-    FROM periodized
+    FROM period_snapshot
 )
 , events AS (
     SELECT
