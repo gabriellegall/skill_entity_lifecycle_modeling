@@ -1,4 +1,4 @@
-"USER_ID","DATE","STATUS"
+USER_ID,DATE_INFO,STATUS
 "1","2026-01-01","active"
 "2","2026-01-01","active"
 "3","2026-01-01","active"

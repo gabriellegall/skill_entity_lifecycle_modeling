@@ -11,14 +11,14 @@ models:
           arguments:
             combination_of_columns:
               - user_id
-              - date
+              - date_info
     columns:
       - name: user_id
         description: Unique integer identifier for the user.
         data_type: integer
         data_tests:
           - not_null
-      - name: date
+      - name: date_info
         description: Calendar date of the subscription status record.
         data_type: date
         data_tests:
