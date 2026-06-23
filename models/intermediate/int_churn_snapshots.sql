@@ -17,63 +17,31 @@ WITH source AS (
             '{{ grain }}' AS TIME_GRAIN,
             IS_ACTIVE
         FROM source
-        WHERE DATE_INFO = CAST(DATE_TRUNC('{{ grain }}', DATE_INFO) AS DATE)
+        WHERE DATE_INFO = TIME_PERIOD
         {% if not loop.last %}UNION ALL{% endif %}
     {% endfor %}
 )
 , status_change AS (
     SELECT
-        USER_ID,
-        TIME_PERIOD,
-        TIME_GRAIN,
-        IS_ACTIVE,
+        *,
         LAG(IS_ACTIVE) OVER (
             PARTITION BY USER_ID, TIME_GRAIN
             ORDER BY TIME_PERIOD
         ) AS PREVIOUS_IS_ACTIVE
     FROM periodized
 )
-, churn_events AS (
+, events AS (
     SELECT
-        USER_ID,
-        TIME_PERIOD,
-        TIME_GRAIN,
-        'churn' AS EVENT_TYPE,
-        TRUE AS IS_CHURNED,
-        FALSE AS IS_RESURRECTED,
-        FALSE AS IS_ACQUIRED
+        *,
+        CASE 
+            WHEN PREVIOUS_IS_ACTIVE = TRUE AND IS_ACTIVE = FALSE THEN 'churn'
+            WHEN PREVIOUS_IS_ACTIVE IS NULL AND IS_ACTIVE = TRUE THEN 'acquisition'
+            WHEN PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE THEN 'resurrection'
+        END AS EVENT_TYPE,
+        EVENT_TYPE = 'churn' AS IS_CHURNED,
+        EVENT_TYPE = 'resurrection' AS IS_RESURRECTED,
+        EVENT_TYPE = 'acquisition' AS IS_ACQUIRED
     FROM status_change
-    WHERE
-        PREVIOUS_IS_ACTIVE = TRUE
-        AND IS_ACTIVE = FALSE
-)
-, acquisition_events AS (
-    SELECT
-        USER_ID,
-        TIME_PERIOD,
-        TIME_GRAIN,
-        'acquisition' AS EVENT_TYPE,
-        FALSE AS IS_CHURNED,
-        FALSE AS IS_RESURRECTED,
-        TRUE AS IS_ACQUIRED
-    FROM status_change
-    WHERE
-        PREVIOUS_IS_ACTIVE IS NULL
-        AND IS_ACTIVE = TRUE
-)
-, resurrection_events AS (
-    SELECT
-        USER_ID,
-        TIME_PERIOD,
-        TIME_GRAIN,
-        'resurrection' AS EVENT_TYPE,
-        FALSE AS IS_CHURNED,
-        TRUE AS IS_RESURRECTED,
-        FALSE AS IS_ACQUIRED
-    FROM status_change
-    WHERE
-        PREVIOUS_IS_ACTIVE = FALSE
-        AND IS_ACTIVE = TRUE
 )
 
 SELECT
@@ -84,28 +52,5 @@ SELECT
     IS_CHURNED,
     IS_RESURRECTED,
     IS_ACQUIRED
-FROM churn_events
-
-UNION ALL
-
-SELECT
-    USER_ID,
-    TIME_PERIOD,
-    TIME_GRAIN,
-    EVENT_TYPE,
-    IS_CHURNED,
-    IS_RESURRECTED,
-    IS_ACQUIRED
-FROM acquisition_events
-
-UNION ALL
-
-SELECT
-    USER_ID,
-    TIME_PERIOD,
-    TIME_GRAIN,
-    EVENT_TYPE,
-    IS_CHURNED,
-    IS_RESURRECTED,
-    IS_ACQUIRED
-FROM resurrection_events
+FROM events
+WHERE EVENT_TYPE IS NOT NULL
