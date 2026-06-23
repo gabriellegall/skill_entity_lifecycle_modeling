@@ -17,7 +17,7 @@ WITH source AS (
             '{{ grain }}' AS TIME_GRAIN,
             IS_ACTIVE
         FROM source
-        WHERE DATE_INFO = TIME_PERIOD
+        WHERE DATE_INFO = TIME_PERIOD -- Keep each period snapshot date only
         {% if not loop.last %}UNION ALL{% endif %}
     {% endfor %}
 )

@@ -16,13 +16,13 @@ WITH period_snapshot AS (
     SELECT
         *,
         CASE 
-            WHEN PREVIOUS_IS_ACTIVE = TRUE AND IS_ACTIVE = FALSE THEN 'churn'
-            WHEN PREVIOUS_IS_ACTIVE IS NULL AND IS_ACTIVE = TRUE THEN 'acquisition'
-            WHEN PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE THEN 'resurrection'
+            WHEN PREVIOUS_IS_ACTIVE = TRUE  AND IS_ACTIVE = FALSE   THEN 'churn'
+            WHEN PREVIOUS_IS_ACTIVE IS NULL AND IS_ACTIVE = TRUE    THEN 'acquisition'
+            WHEN PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE    THEN 'resurrection'
         END AS EVENT_TYPE,
-        EVENT_TYPE = 'churn' AS IS_CHURNED,
+        EVENT_TYPE = 'churn'        AS IS_CHURNED,
         EVENT_TYPE = 'resurrection' AS IS_RESURRECTED,
-        EVENT_TYPE = 'acquisition' AS IS_ACQUIRED
+        EVENT_TYPE = 'acquisition'  AS IS_ACQUIRED
     FROM status_change
 )
 
