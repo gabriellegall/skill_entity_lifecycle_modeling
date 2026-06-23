@@ -12,10 +12,10 @@ WITH period_snapshot AS (
         TIME_PERIOD,
         LAG(TIME_PERIOD) OVER (PARTITION BY USER_ID, TIME_GRAIN ORDER BY TIME_PERIOD) AS actual_prev_period,
         CASE
-            WHEN TIME_GRAIN = 'week' THEN TIME_PERIOD - INTERVAL 7 DAY
-            WHEN TIME_GRAIN = 'month' THEN TIME_PERIOD - INTERVAL 1 MONTH
+            WHEN TIME_GRAIN = 'week'    THEN TIME_PERIOD - INTERVAL 7 DAY
+            WHEN TIME_GRAIN = 'month'   THEN TIME_PERIOD - INTERVAL 1 MONTH
             WHEN TIME_GRAIN = 'quarter' THEN TIME_PERIOD - INTERVAL 3 MONTH
-            WHEN TIME_GRAIN = 'year' THEN TIME_PERIOD - INTERVAL 1 YEAR
+            WHEN TIME_GRAIN = 'year'    THEN TIME_PERIOD - INTERVAL 1 YEAR
         END AS expected_prev_period
     FROM period_snapshot
 )
