@@ -1,7 +1,7 @@
 {{ config(materialized='view') }}
 
 WITH period_snapshot AS (
-    SELECT * FROM {{ ref('int_user_status_agg_snapshot') }}
+    SELECT * FROM {{ ref('int_user_status_build_snapshots') }}
 )
 , status_change AS (
     SELECT
