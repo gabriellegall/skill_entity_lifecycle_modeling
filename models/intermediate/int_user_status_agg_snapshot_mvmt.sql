@@ -5,7 +5,11 @@ WITH period_snapshot AS (
 )
 , status_change AS (
     SELECT
-        *,
+        USER_ID,
+        TIME_PERIOD,
+        PREVIOUS_TIME_PERIOD,
+        TIME_GRAIN,
+        IS_ACTIVE,
         LAG(IS_ACTIVE) OVER (
             PARTITION BY USER_ID, TIME_GRAIN
             ORDER BY TIME_PERIOD
