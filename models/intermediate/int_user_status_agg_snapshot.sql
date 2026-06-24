@@ -9,6 +9,12 @@ WITH source AS (
     FROM {{ ref('stg_seed__subscription_status') }}
 )
 
+, data_cutoff AS (
+    SELECT
+        MAX(DATE_INFO) AS MAX_AVAILABLE_DATE_INFO
+    FROM source
+)
+
 -- Define each time grain
 , transition_periods AS (
     SELECT
@@ -31,6 +37,8 @@ WITH source AS (
         ('quarter'),
         ('year')
     ) AS G(TIME_GRAIN)
+    CROSS JOIN data_cutoff C
+    WHERE TIME_PERIOD_END <= C.MAX_AVAILABLE_DATE_INFO -- Only keep full periods for each time grain
 )
 
 -- For each time grain, find the first event or each kind, at get the end of the period status
