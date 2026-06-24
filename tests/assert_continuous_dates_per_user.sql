@@ -6,16 +6,16 @@ WITH period_snapshot AS (
     SELECT
         USER_ID,
         TIME_GRAIN,
-        TIME_PERIOD,
-        LAG(TIME_PERIOD) OVER (PARTITION BY USER_ID, TIME_GRAIN ORDER BY TIME_PERIOD) AS ACTUAL_PREVIOUS_PERIOD,
-        PREVIOUS_TIME_PERIOD                                                          AS EXPECTED_PREVIOUS_PERIOD
+        TIME_PERIOD_END,
+        LAG(TIME_PERIOD_END) OVER (PARTITION BY USER_ID, TIME_GRAIN ORDER BY TIME_PERIOD_END) AS ACTUAL_PREVIOUS_PERIOD,
+        PREVIOUS_TIME_PERIOD_END                                                              AS EXPECTED_PREVIOUS_PERIOD
     FROM period_snapshot
 )
 
 SELECT
     USER_ID,
     TIME_GRAIN,
-    TIME_PERIOD,
+    TIME_PERIOD_END,
     ACTUAL_PREVIOUS_PERIOD,
     EXPECTED_PREVIOUS_PERIOD        
 FROM periods_with_lag

@@ -7,7 +7,7 @@ WITH period_snapshot AS (
     SELECT
         USER_ID,
         TIME_PERIOD_END,
-        PREVIOUS_TIME_PERIOD,
+        PREVIOUS_TIME_PERIOD_END,
         TIME_GRAIN,
         IS_ACTIVE,
         FIRST_ACQUISITION_DATE_INFO,

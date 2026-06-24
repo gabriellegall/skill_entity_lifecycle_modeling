@@ -5,8 +5,8 @@ WITH period_snapshot AS (
 , active_users_by_period AS (
     SELECT
         TIME_GRAIN,
-        TIME_PERIOD,
-        PREVIOUS_TIME_PERIOD,
+        TIME_PERIOD_END,
+        PREVIOUS_TIME_PERIOD_END,
         COUNT_IF(IS_ACTIVE) AS NB_ACTIVE_USERS_END_PERIOD
     FROM period_snapshot
     GROUP BY 1, 2, 3
@@ -15,7 +15,7 @@ WITH period_snapshot AS (
 , movement_by_period AS (
     SELECT
         TIME_GRAIN,
-        TIME_PERIOD,
+        TIME_PERIOD_END,
         COUNT_IF(EVENT_TYPE = 'acquisition')  AS NB_ACQUIRED_USERS,
         COUNT_IF(EVENT_TYPE = 'churn')        AS NB_CHURNED_USERS,
         COUNT_IF(EVENT_TYPE = 'resurrection') AS NB_RESURRECTED_USERS
@@ -26,7 +26,7 @@ WITH period_snapshot AS (
 , current_with_previous AS (
     SELECT
         cur.TIME_GRAIN,
-        cur.TIME_PERIOD,
+        cur.TIME_PERIOD_END,
         -- Total users
         cur.NB_ACTIVE_USERS_END_PERIOD,
         COALESCE(prev.NB_ACTIVE_USERS_END_PERIOD, 0) AS NB_ACTIVE_USERS_BEGINNING_PERIOD,
@@ -37,15 +37,15 @@ WITH period_snapshot AS (
     FROM active_users_by_period AS cur
     LEFT JOIN active_users_by_period AS prev
         ON prev.TIME_GRAIN = cur.TIME_GRAIN
-        AND prev.TIME_PERIOD = cur.PREVIOUS_TIME_PERIOD
+        AND prev.TIME_PERIOD_END = cur.PREVIOUS_TIME_PERIOD_END
     LEFT JOIN movement_by_period AS mv
         ON mv.TIME_GRAIN = cur.TIME_GRAIN
-        AND mv.TIME_PERIOD = cur.TIME_PERIOD
+        AND mv.TIME_PERIOD_END = cur.TIME_PERIOD_END
 )
 
 SELECT
     TIME_GRAIN,
-    TIME_PERIOD,
+    TIME_PERIOD_END,
     NB_ACTIVE_USERS_BEGINNING_PERIOD,
     NB_ACQUIRED_USERS,
     NB_CHURNED_USERS,
