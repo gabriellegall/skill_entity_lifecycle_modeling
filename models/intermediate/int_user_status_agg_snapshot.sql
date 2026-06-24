@@ -1,39 +1,71 @@
 {{ config(materialized='table') }}
 
-{% set time_grains = ['week', 'month', 'quarter', 'year'] %}
-
 WITH source AS (
     SELECT
         USER_ID,
         DATE_INFO,
-        IS_ACTIVE
+        IS_ACTIVE,
+        PREVIOUS_IS_ACTIVE
     FROM {{ ref('stg_seed__subscription_status') }}
 )
-, period_snapshot AS (
-    {% for grain in time_grains %}
-        SELECT
-            USER_ID,
-            CAST(DATE_TRUNC('{{ grain }}', DATE_INFO) AS DATE) AS TIME_PERIOD,
-            '{{ grain }}' AS TIME_GRAIN,
-            IS_ACTIVE
-        FROM source
-        WHERE DATE_INFO = TIME_PERIOD -- Keep each period snapshot date only
-        {% if not loop.last %}UNION ALL{% endif %}
-    {% endfor %}
-)
-, period_snapshot_with_previous AS (
+
+-- Define each time grain
+, transition_periods AS (
     SELECT
-        USER_ID,
-        TIME_PERIOD,
-        TIME_GRAIN,
-        IS_ACTIVE,
-        CASE
-            WHEN TIME_GRAIN = 'week'    THEN TIME_PERIOD - INTERVAL 7 DAY
-            WHEN TIME_GRAIN = 'month'   THEN TIME_PERIOD - INTERVAL 1 MONTH
-            WHEN TIME_GRAIN = 'quarter' THEN TIME_PERIOD - INTERVAL 3 MONTH
-            WHEN TIME_GRAIN = 'year'    THEN TIME_PERIOD - INTERVAL 1 YEAR
-        END AS PREVIOUS_TIME_PERIOD
-    FROM period_snapshot
+        S.USER_ID,
+        CAST(DATE_TRUNC(G.TIME_GRAIN, S.DATE_INFO) AS DATE) AS TIME_PERIOD_START,
+        CAST(CASE
+            WHEN G.TIME_GRAIN = 'week'    THEN CAST(DATE_TRUNC('week', S.DATE_INFO) AS DATE) + INTERVAL 6 DAY
+            WHEN G.TIME_GRAIN = 'month'   THEN LAST_DAY(S.DATE_INFO)
+            WHEN G.TIME_GRAIN = 'quarter' THEN CAST(DATE_TRUNC('quarter', S.DATE_INFO) AS DATE) + INTERVAL 3 MONTH - INTERVAL 1 DAY
+            WHEN G.TIME_GRAIN = 'year'    THEN MAKE_DATE(YEAR(S.DATE_INFO), 12, 31)
+        END AS DATE) AS TIME_PERIOD_END,
+        G.TIME_GRAIN,
+        S.DATE_INFO,
+        S.PREVIOUS_IS_ACTIVE,
+        S.IS_ACTIVE
+    FROM source S
+    CROSS JOIN (VALUES
+        ('week'),
+        ('month'),
+        ('quarter'),
+        ('year')
+    ) AS G(TIME_GRAIN)
 )
 
-SELECT * FROM period_snapshot_with_previous
+-- For each time grain, find the first event or each kind, at get the end of the period status
+, period_lifecycle_date_arrays AS (
+    SELECT
+        USER_ID,
+        TIME_PERIOD_START,
+        TIME_PERIOD_END,
+        CAST(TIME_PERIOD_START - INTERVAL 1 DAY AS DATE) AS PREVIOUS_TIME_PERIOD,
+        TIME_GRAIN,
+        MAX(CASE WHEN DATE_INFO = TIME_PERIOD_END THEN IS_ACTIVE ELSE NULL END) AS IS_ACTIVE, 
+        LIST(DATE_INFO ORDER BY DATE_INFO) FILTER (WHERE PREVIOUS_IS_ACTIVE IS NULL AND IS_ACTIVE = TRUE) AS ALL_ACQUISITION_DATE_INFO,
+        LIST(DATE_INFO ORDER BY DATE_INFO) FILTER (WHERE PREVIOUS_IS_ACTIVE = TRUE AND IS_ACTIVE = FALSE) AS ALL_CHURN_DATE_INFO,
+        LIST(DATE_INFO ORDER BY DATE_INFO) FILTER (WHERE PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE) AS ALL_RESURRECTION_DATE_INFO
+    FROM transition_periods
+    GROUP BY USER_ID, TIME_PERIOD_START, TIME_PERIOD_END, TIME_GRAIN
+)
+
+SELECT
+    USER_ID,
+    TIME_PERIOD_START,
+    TIME_PERIOD_END,
+    PREVIOUS_TIME_PERIOD,
+    TIME_GRAIN,
+    IS_ACTIVE,
+    -- Acquisition
+    ALL_ACQUISITION_DATE_INFO,
+    LIST_COUNT(ALL_ACQUISITION_DATE_INFO)       AS NB_ACQUISITION_DATE_INFO,
+    LIST_EXTRACT(ALL_ACQUISITION_DATE_INFO, 1)  AS FIRST_ACQUISITION_DATE_INFO,
+    -- Churn
+    ALL_CHURN_DATE_INFO,
+    LIST_COUNT(ALL_CHURN_DATE_INFO)             AS NB_CHURN_DATE_INFO,
+    LIST_EXTRACT(ALL_CHURN_DATE_INFO, 1)        AS FIRST_CHURN_DATE_INFO,
+    -- Resurrection
+    ALL_RESURRECTION_DATE_INFO,
+    LIST_COUNT(ALL_RESURRECTION_DATE_INFO)      AS NB_RESURRECTION_DATE_INFO,
+    LIST_EXTRACT(ALL_RESURRECTION_DATE_INFO, 1) AS FIRST_RESURRECTION_DATE_INFO
+FROM period_lifecycle_date_arrays
