@@ -19,7 +19,7 @@ WITH period_snapshot AS (
     SELECT
         *,
         CASE 
-            WHEN PREVIOUS_IS_ACTIVE IS NULL AND IS_ACTIVE = TRUE  THEN 'acquisition'
+            WHEN FIRST_ACQUISITION_DATE_INFO IS NOT NULL AND IS_ACTIVE = TRUE THEN 'acquisition'
             WHEN PREVIOUS_IS_ACTIVE = TRUE  AND IS_ACTIVE = FALSE THEN 'churn'
             WHEN PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE  THEN 'resurrection'
         END AS EVENT_TYPE,

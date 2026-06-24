@@ -10,10 +10,12 @@ seeds:
       - USER_ID 2: High-frequency churn (1 acquisition, 17 churns, 16 resurrections across Jan-June)
       - USER_ID 3: Always active control (1 acquisition only)
       - USER_ID 4: Dense March movement (1 acquisition, 16 March daily churn/resurrections, then stable active)
+      - USER_ID 5: Starts inactive on first day, then activates and remains active
+      - USER_ID 6: Late joiner starting on 2026-03-15 (active then churn to inactive on 2026-05-01)
     
     columns:
       - name: USER_ID
-        description: Unique user identifier (1-4)
+        description: Unique user identifier (1-6)
         data_type: integer
       
       - name: DATE_INFO
