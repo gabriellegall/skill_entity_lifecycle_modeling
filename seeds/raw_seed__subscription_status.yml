@@ -1,0 +1,28 @@
+version: 2
+
+seeds:
+  - name: raw_seed__subscription_status
+    description: |
+      Daily subscription status history (2026-01-01 to 2026-06-19).
+      
+      **User Scenarios:**
+      - USER_ID 1: Baseline lifecycle (1 acquisition, 1 churn, 1 resurrection)
+      - USER_ID 2: High-frequency churn (1 acquisition, 17 churns, 16 resurrections across Jan-June)
+      - USER_ID 3: Always active control (1 acquisition only)
+      - USER_ID 4: Dense March movement (1 acquisition, 16 March daily churn/resurrections, then stable active)
+    
+    columns:
+      - name: USER_ID
+        description: Unique user identifier (1-4)
+        data_type: integer
+      
+      - name: DATE_INFO
+        description: Daily date for the status record
+        data_type: date
+      
+      - name: STATUS
+        description: Subscription status on the date (active or inactive)
+        data_type: varchar
+        data_tests:
+          - accepted_values:
+              values: [active, inactive]
