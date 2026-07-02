@@ -9,7 +9,7 @@ WITH movement_events AS (
         FIRST_ACQUISITION_DATE_INFO,
         FIRST_CHURN_DATE_INFO,
         FIRST_RESURRECTION_DATE_INFO
-    FROM {{ ref('int_user_status_calculate_movements') }}
+    FROM {{ ref('int_user_status_calculate_movements_2') }}
 )
 
 SELECT

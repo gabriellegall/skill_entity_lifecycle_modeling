@@ -27,4 +27,5 @@ seeds:
         data_type: varchar
         data_tests:
           - accepted_values:
-              values: [active, inactive]
+              arguments:
+                values: [active, inactive]

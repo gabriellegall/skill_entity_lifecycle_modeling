@@ -17,9 +17,9 @@ WITH period_snapshot AS (
         TIME_GRAIN,
         TIME_PERIOD_END,
         COUNT_IF(EVENT_TYPE = 'acquisition')  AS NB_ACQUIRED_USERS,
-        COUNT_IF(EVENT_TYPE = 'churn')        AS NB_CHURNED_USERS,
+        -COUNT_IF(EVENT_TYPE = 'churn')       AS NB_CHURNED_USERS,
         COUNT_IF(EVENT_TYPE = 'resurrection') AS NB_RESURRECTED_USERS
-    FROM {{ ref('int_user_status_calculate_movements') }}
+    FROM {{ ref('int_user_status_calculate_movements_2') }}
     GROUP BY 1, 2
 )
 
@@ -29,7 +29,7 @@ WITH period_snapshot AS (
         cur.TIME_PERIOD_END,
         -- Total users
         cur.NB_ACTIVE_USERS_END_PERIOD,
-        COALESCE(prev.NB_ACTIVE_USERS_END_PERIOD, 0) AS NB_ACTIVE_USERS_BEGINNING_PERIOD,
+        COALESCE(prev.NB_ACTIVE_USERS_END_PERIOD, 0) AS NB_ACTIVE_USERS_PREVIOUS_END_PERIOD,
         -- Movements
         COALESCE(mv.NB_ACQUIRED_USERS, 0)            AS NB_ACQUIRED_USERS,
         COALESCE(mv.NB_CHURNED_USERS, 0)             AS NB_CHURNED_USERS,
@@ -46,11 +46,11 @@ WITH period_snapshot AS (
 SELECT
     TIME_GRAIN,
     TIME_PERIOD_END,
-    NB_ACTIVE_USERS_BEGINNING_PERIOD,
+    NB_ACTIVE_USERS_PREVIOUS_END_PERIOD,
     NB_ACQUIRED_USERS,
     NB_CHURNED_USERS,
     NB_RESURRECTED_USERS,
     NB_ACTIVE_USERS_END_PERIOD
 FROM current_with_previous
 -- Equation expected to hold true for all periods and grains, if not, return the rows that violate the identity
-WHERE NOT NB_ACTIVE_USERS_BEGINNING_PERIOD + NB_ACQUIRED_USERS - NB_CHURNED_USERS + NB_RESURRECTED_USERS = NB_ACTIVE_USERS_END_PERIOD
+WHERE NOT NB_ACTIVE_USERS_PREVIOUS_END_PERIOD + NB_ACQUIRED_USERS + NB_CHURNED_USERS + NB_RESURRECTED_USERS = NB_ACTIVE_USERS_END_PERIOD
