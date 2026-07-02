@@ -26,3 +26,10 @@ models:
                 expression: IS NOT NULL
               config:
                 where: IS_ACQUIRED = TRUE
+
+  - name: int_user_status_period_metrics
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: NB_ACTIVE_USERS_PREVIOUS_PERIOD_END + NB_ACQUIRED_USERS + NB_CHURNED_USERS + NB_RESURRECTED_USERS = NB_ACTIVE_USERS_PERIOD_END
+

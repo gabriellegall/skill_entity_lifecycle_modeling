@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: int_user_status_daily_metrics
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: NB_ACTIVE_USERS_PREVIOUS_DATE_INFO + NB_ACQUIRED_USERS + NB_CHURNED_USERS + NB_RESURRECTED_USERS = NB_ACTIVE_USERS_DATE_INFO
