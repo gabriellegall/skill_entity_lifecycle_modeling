@@ -5,7 +5,7 @@ WITH period_snapshot AS (
         USER_ID,
         TIME_GRAIN,
         TIME_PERIOD_END,
-        IS_ACTIVE
+        IS_ACTIVE_PERIOD_END
     FROM {{ ref('int_user_status_build_snapshots') }}
 )
 
@@ -13,7 +13,7 @@ WITH period_snapshot AS (
     SELECT
         TIME_GRAIN,
         TIME_PERIOD_END,
-        COUNT_IF(IS_ACTIVE) AS NB_ACTIVE_USERS_END_PERIOD
+        COUNT_IF(IS_ACTIVE_PERIOD_END) AS NB_ACTIVE_USERS_PERIOD_END
     FROM period_snapshot
     GROUP BY 1, 2
 )
@@ -33,8 +33,8 @@ WITH period_snapshot AS (
     SELECT
         BASE.TIME_GRAIN,
         BASE.TIME_PERIOD_END,
-        BASE.NB_ACTIVE_USERS_END_PERIOD,
-        COALESCE(LAG(BASE.NB_ACTIVE_USERS_END_PERIOD) OVER (PARTITION BY BASE.TIME_GRAIN ORDER BY BASE.TIME_PERIOD_END), 0) AS NB_ACTIVE_USERS_PREVIOUS_END_PERIOD,
+        BASE.NB_ACTIVE_USERS_PERIOD_END,
+        COALESCE(LAG(BASE.NB_ACTIVE_USERS_PERIOD_END) OVER (PARTITION BY BASE.TIME_GRAIN ORDER BY BASE.TIME_PERIOD_END), 0) AS NB_ACTIVE_USERS_PREVIOUS_PERIOD_END,
         COALESCE(MV.NB_ACQUIRED_USERS, 0)                                                                                   AS NB_ACQUIRED_USERS,
         COALESCE(MV.NB_CHURNED_USERS, 0)                                                                                    AS NB_CHURNED_USERS,
         COALESCE(MV.NB_RESURRECTED_USERS, 0)                                                                                AS NB_RESURRECTED_USERS
@@ -47,10 +47,10 @@ WITH period_snapshot AS (
 SELECT
     TIME_GRAIN,
     TIME_PERIOD_END,
-    NB_ACTIVE_USERS_PREVIOUS_END_PERIOD,
+    NB_ACTIVE_USERS_PREVIOUS_PERIOD_END,
     NB_ACQUIRED_USERS,
     NB_CHURNED_USERS,
     NB_RESURRECTED_USERS,
-    NB_ACTIVE_USERS_END_PERIOD
+    NB_ACTIVE_USERS_PERIOD_END
 FROM period_metrics
 ORDER BY TIME_GRAIN ASC, TIME_PERIOD_END ASC
