@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: int_user_status_calculate_movements_2
+    columns:
+      - name: FIRST_CHURN_DATE_INFO
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: IS NOT NULL
+              config:
+                where: IS_CHURNED = TRUE
+
+      - name: FIRST_RESURRECTION_DATE_INFO
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: IS NOT NULL
+              config:
+                where: IS_RESURRECTED = TRUE
+
+      - name: FIRST_ACQUISITION_DATE_INFO
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: IS NOT NULL
+              config:
+                where: IS_ACQUIRED = TRUE
