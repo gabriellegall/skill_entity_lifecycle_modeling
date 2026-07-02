@@ -3,8 +3,8 @@
 WITH daily_user_base AS (
     SELECT
         DATE_INFO,
-        COUNT(*)            AS NB_USERS_END_DAY,
-        COUNT_IF(IS_ACTIVE) AS NB_ACTIVE_USERS_END_DAY
+        COUNT(*)            AS NB_USERS_DATE_INFO,
+        COUNT_IF(IS_ACTIVE) AS NB_ACTIVE_USERS_DATE_INFO
     FROM {{ ref('stg_seed__subscription_status') }}
     GROUP BY 1
 )
@@ -22,12 +22,12 @@ WITH daily_user_base AS (
 , daily_metrics AS (
     SELECT
         BASE.DATE_INFO,
-        BASE.NB_USERS_END_DAY,
-        BASE.NB_ACTIVE_USERS_END_DAY,
-        COALESCE(LAG(BASE.NB_ACTIVE_USERS_END_DAY) OVER (ORDER BY BASE.DATE_INFO), 0) AS NB_ACTIVE_USERS_PREVIOUS_DAY,
-        COALESCE(MV.NB_ACQUIRED_USERS, 0)                                             AS NB_ACQUIRED_USERS,
-        COALESCE(MV.NB_CHURNED_USERS, 0)                                              AS NB_CHURNED_USERS,
-        COALESCE(MV.NB_RESURRECTED_USERS, 0)                                          AS NB_RESURRECTED_USERS
+        BASE.NB_USERS_DATE_INFO,
+        BASE.NB_ACTIVE_USERS_DATE_INFO,
+        COALESCE(LAG(BASE.NB_ACTIVE_USERS_DATE_INFO) OVER (ORDER BY BASE.DATE_INFO), 0) AS NB_ACTIVE_USERS_PREVIOUS_DATE_INFO,
+        COALESCE(MV.NB_ACQUIRED_USERS, 0)                                               AS NB_ACQUIRED_USERS,
+        COALESCE(MV.NB_CHURNED_USERS, 0)                                                AS NB_CHURNED_USERS,
+        COALESCE(MV.NB_RESURRECTED_USERS, 0)                                            AS NB_RESURRECTED_USERS
     FROM daily_user_base AS BASE
     LEFT JOIN daily_movements AS MV
         ON MV.DATE_INFO = BASE.DATE_INFO
@@ -35,10 +35,10 @@ WITH daily_user_base AS (
 
 SELECT
     DATE_INFO,
-    NB_ACTIVE_USERS_PREVIOUS_DAY,
+    NB_ACTIVE_USERS_PREVIOUS_DATE_INFO,
     NB_ACQUIRED_USERS,
     NB_CHURNED_USERS,
     NB_RESURRECTED_USERS,
-    NB_ACTIVE_USERS_END_DAY
+    NB_ACTIVE_USERS_DATE_INFO
 FROM daily_metrics
 ORDER BY DATE_INFO ASC
