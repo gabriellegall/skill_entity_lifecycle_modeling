@@ -1,17 +1,13 @@
 {{ config(materialized='view') }}
 
-WITH period_snapshot AS (
-    SELECT * FROM {{ ref('stg_seed__subscription_status') }}
-)
-
-, status_change AS (
+WITH status_change AS (
     SELECT
         USER_ID,
         DATE_INFO,
         IS_ACTIVE,
         CASE WHEN DATE_INFO = FIRST_ACTIVE_DATE_INFO THEN DATE_INFO END AS FIRST_ACQUISITION_DATE_INFO,
         LAG(IS_ACTIVE) OVER (PARTITION BY USER_ID ORDER BY DATE_INFO)   AS PREVIOUS_IS_ACTIVE
-    FROM period_snapshot
+    FROM {{ ref('stg_seed__subscription_status') }}
 )
 
 , events AS (
@@ -32,6 +28,7 @@ SELECT
     USER_ID,
     DATE_INFO,
     EVENT_TYPE,
+    IS_ACTIVE,
     IS_CHURNED,
     IS_RESURRECTED,
     IS_ACQUIRED

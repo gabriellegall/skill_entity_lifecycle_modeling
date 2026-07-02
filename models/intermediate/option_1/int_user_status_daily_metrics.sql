@@ -1,19 +1,11 @@
 {{ config(materialized='view') }}
 
-WITH period_snapshot AS (
-    SELECT
-        USER_ID,
-        DATE_INFO,
-        IS_ACTIVE
-    FROM {{ ref('stg_seed__subscription_status') }}
-)
-
-, daily_user_base AS (
+WITH daily_user_base AS (
     SELECT
         DATE_INFO,
         COUNT(*)            AS NB_USERS_END_DAY,
         COUNT_IF(IS_ACTIVE) AS NB_ACTIVE_USERS_END_DAY
-    FROM period_snapshot
+    FROM {{ ref('stg_seed__subscription_status') }}
     GROUP BY 1
 )
 
@@ -43,10 +35,10 @@ WITH period_snapshot AS (
 
 SELECT
     DATE_INFO,
-    NB_USERS_END_DAY,
     NB_ACTIVE_USERS_PREVIOUS_DAY,
     NB_ACQUIRED_USERS,
     NB_CHURNED_USERS,
     NB_RESURRECTED_USERS,
     NB_ACTIVE_USERS_END_DAY
 FROM daily_metrics
+ORDER BY DATE_INFO ASC
