@@ -6,7 +6,7 @@ WITH status_change AS (
         DATE_INFO,
         IS_ACTIVE,
         PREVIOUS_IS_ACTIVE,
-        FIRST_ACQUISITION_DATE_INFO,
+        IS_FIRST_USER_ACTIVE_DATE_INFO
     FROM {{ ref('stg_seed__subscription_status') }}
 )
 
@@ -14,7 +14,7 @@ WITH status_change AS (
     SELECT
         *,
         CASE 
-            WHEN FIRST_ACQUISITION_DATE_INFO IS NOT NULL THEN 'acquisition'
+            WHEN IS_FIRST_USER_ACTIVE_DATE_INFO = TRUE THEN 'acquisition'
             WHEN PREVIOUS_IS_ACTIVE = TRUE  AND IS_ACTIVE = FALSE THEN 'churn'
             WHEN PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE  THEN 'resurrection'
         END AS EVENT_TYPE,
