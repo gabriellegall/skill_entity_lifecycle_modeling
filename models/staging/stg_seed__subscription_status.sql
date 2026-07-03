@@ -6,9 +6,8 @@ WITH staged AS (
         STATUS = 'active' AS IS_ACTIVE,
         LAG(STATUS = 'active') OVER (PARTITION BY USER_ID ORDER BY DATE_INFO) AS PREVIOUS_IS_ACTIVE,
         CASE
-            -- Return TRUE for the first [IS_ACTIVE] = TRUE at [USER_ID] level
-            WHEN IS_ACTIVE = TRUE AND PREVIOUS_IS_ACTIVE IS NULL THEN TRUE
-            WHEN MIN(CASE WHEN STATUS = 'active' THEN CAST(DATE_INFO AS DATE) ELSE NULL END) OVER (PARTITION BY USER_ID) = CAST(DATE_INFO AS DATE) THEN TRUE
+            -- Return TRUE for the first IS_ACTIVE = TRUE at USER_ID level:
+            WHEN MIN(CASE WHEN STATUS = 'active' THEN DATE_INFO ELSE NULL END) OVER (PARTITION BY USER_ID) = DATE_INFO THEN TRUE
             ELSE FALSE
         END AS IS_FIRST_USER_ACTIVE_DATE_INFO
     FROM {{ ref('raw_seed__subscription_status') }}
