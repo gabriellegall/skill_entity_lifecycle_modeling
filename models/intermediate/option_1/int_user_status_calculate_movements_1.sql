@@ -17,6 +17,7 @@ WITH status_change AS (
             WHEN IS_FIRST_USER_ACTIVE_DATE_INFO = TRUE THEN 'acquisition'
             WHEN PREVIOUS_IS_ACTIVE = TRUE  AND IS_ACTIVE = FALSE THEN 'churn'
             WHEN PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE  THEN 'resurrection'
+            -- Other events are not relevant (either 'still_active' or 'not_yet_acquired')
         END AS EVENT_TYPE,
         EVENT_TYPE = 'acquisition'  AS IS_ACQUIRED,
         EVENT_TYPE = 'churn'        AS IS_CHURNED,
