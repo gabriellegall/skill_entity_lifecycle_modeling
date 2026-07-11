@@ -58,5 +58,5 @@ models/
 seeds/
 └── raw_seed__subscription_status.csv         # Sample data
 tests/
-└── approach_period_snapshots/                                 # Custom reconciliation tests
+└── approach_period_snapshots/                # Custom reconciliation tests
 ```
