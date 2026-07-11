@@ -2,7 +2,19 @@ version: 2
 
 models:
   - name: int_user_status_snapshots_period
-    description: "This model builds snapshots periods for each [user_id] and [time_grain] keeping only start and end dates for each period."
+    description: "This model unions all period snapshot grains into a single output for each [user_id] and [time_grain]."
+
+  - name: int_user_status_snapshots_period__weekly
+    description: "This model builds weekly period snapshots incrementally for each [user_id] by scanning current and previous week data."
+
+  - name: int_user_status_snapshots_period__monthly
+    description: "This model builds monthly period snapshots incrementally for each [user_id] by scanning current and previous month data."
+
+  - name: int_user_status_snapshots_period__quarterly
+    description: "This model builds quarterly period snapshots incrementally for each [user_id] by scanning current and previous quarter data."
+
+  - name: int_user_status_snapshots_period__yearly
+    description: "This model builds yearly period snapshots incrementally for each [user_id] by scanning current and previous year data."
 
   - name: int_user_status_snapshots_period_agg_movements
     description: "This model calculates the number of users that have been acquired, churned, or resurrected for each [user_id] and [time_grain], built on period snapshots."
