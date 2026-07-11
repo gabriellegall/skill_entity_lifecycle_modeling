@@ -1,7 +1,11 @@
 version: 2
 
 models:
+  - name: int_user_status_calculate_movements_1
+    description: "This model calculates the number of users that have been acquired, churned, or resurrected for each [user_id] and [time_grain]."
+
   - name: int_user_status_daily_metrics
+    description: "This model aggregates user movements for each date. It can be useful for high-level reporting or data consistency checks."
     data_tests:
       - dbt_utils.expression_is_true:
           arguments:

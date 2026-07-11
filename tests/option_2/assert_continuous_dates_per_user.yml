@@ -1,0 +1,5 @@
+version: 2
+
+data_tests:
+  - name: assert_continuous_dates_per_user
+    description: "This test ensures that dates are continuous for each user (i.e. no missing date between start and end dates)."
