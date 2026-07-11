@@ -278,8 +278,23 @@ WITH source AS (
         DATE_INFO,
         IS_ACTIVE,
         PREVIOUS_IS_ACTIVE,
-        IS_FIRST_USER_ACTIVE_DATE_INFO
+        IS_FIRST_USER_ACTIVE_DATE_INFO,
+        DATE_INFO = CAST(CAST(DATE_TRUNC('week', DATE_INFO) AS DATE) + INTERVAL 6 DAY AS DATE) AS IS_WEEK_PERIOD_END,
+        DATE_INFO = LAST_DAY(DATE_INFO) AS IS_MONTH_PERIOD_END,
+        DATE_INFO = CAST(CAST(DATE_TRUNC('quarter', DATE_INFO) AS DATE) + INTERVAL 3 MONTH - INTERVAL 1 DAY AS DATE) AS IS_QUARTER_PERIOD_END,
+        DATE_INFO = MAKE_DATE(YEAR(DATE_INFO), 12, 31) AS IS_YEAR_PERIOD_END
     FROM {{ ref('stg_seed__subscription_status') }}
+    WHERE 
+        -- Performance optimization:
+            -- Movement filters (i.e. "something happened")
+        IS_FIRST_USER_ACTIVE_DATE_INFO = TRUE
+        OR (PREVIOUS_IS_ACTIVE = TRUE AND IS_ACTIVE = FALSE)
+        OR (PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE AND IS_FIRST_USER_ACTIVE_DATE_INFO = FALSE)
+            -- Time boundary filters (i.e. "the period snapshot is relevant")
+        OR IS_WEEK_PERIOD_END = TRUE
+        OR IS_MONTH_PERIOD_END = TRUE
+        OR IS_QUARTER_PERIOD_END = TRUE
+        OR IS_YEAR_PERIOD_END = TRUE
 )
 
 , data_cutoff AS (

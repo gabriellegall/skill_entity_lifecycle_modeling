@@ -6,8 +6,24 @@ WITH source AS (
         DATE_INFO,
         IS_ACTIVE,
         PREVIOUS_IS_ACTIVE,
-        IS_FIRST_USER_ACTIVE_DATE_INFO
+        IS_FIRST_USER_ACTIVE_DATE_INFO,
+        -- Time grain period end dates
+        CAST(CAST(DATE_TRUNC('week', DATE_INFO) AS DATE) + INTERVAL 6 DAY AS DATE) AS WEEK_PERIOD_END_DATE_INFO,
+        LAST_DAY(DATE_INFO) AS MONTH_PERIOD_END_DATE_INFO,
+        CAST(CAST(DATE_TRUNC('quarter', DATE_INFO) AS DATE) + INTERVAL 3 MONTH - INTERVAL 1 DAY AS DATE) AS QUARTER_PERIOD_END_DATE_INFO,
+        MAKE_DATE(YEAR(DATE_INFO), 12, 31) AS YEAR_PERIOD_END_DATE_INFO
     FROM {{ ref('stg_seed__subscription_status') }}
+    WHERE 
+        -- For performance optimization reasons:
+            -- Movement filters (i.e. "something happened")
+        IS_FIRST_USER_ACTIVE_DATE_INFO = TRUE
+        OR (PREVIOUS_IS_ACTIVE = TRUE AND IS_ACTIVE = FALSE)
+        OR (PREVIOUS_IS_ACTIVE = FALSE AND IS_ACTIVE = TRUE AND IS_FIRST_USER_ACTIVE_DATE_INFO = FALSE)
+            -- Time grain period end dates (i.e. "the period snapshot is relevant")
+        OR DATE_INFO = WEEK_PERIOD_END_DATE_INFO
+        OR DATE_INFO = MONTH_PERIOD_END_DATE_INFO
+        OR DATE_INFO = QUARTER_PERIOD_END_DATE_INFO
+        OR DATE_INFO = YEAR_PERIOD_END_DATE_INFO
 )
 
 , data_cutoff AS (
@@ -22,10 +38,10 @@ WITH source AS (
         S.USER_ID,
         CAST(DATE_TRUNC(G.TIME_GRAIN, S.DATE_INFO) AS DATE) AS TIME_PERIOD_START,
         CAST(CASE
-            WHEN G.TIME_GRAIN = 'week'    THEN CAST(DATE_TRUNC('week', S.DATE_INFO) AS DATE) + INTERVAL 6 DAY
-            WHEN G.TIME_GRAIN = 'month'   THEN LAST_DAY(S.DATE_INFO)
-            WHEN G.TIME_GRAIN = 'quarter' THEN CAST(DATE_TRUNC('quarter', S.DATE_INFO) AS DATE) + INTERVAL 3 MONTH - INTERVAL 1 DAY
-            WHEN G.TIME_GRAIN = 'year'    THEN MAKE_DATE(YEAR(S.DATE_INFO), 12, 31)
+            WHEN G.TIME_GRAIN = 'week'    THEN S.WEEK_PERIOD_END_DATE_INFO
+            WHEN G.TIME_GRAIN = 'month'   THEN S.MONTH_PERIOD_END_DATE_INFO
+            WHEN G.TIME_GRAIN = 'quarter' THEN S.QUARTER_PERIOD_END_DATE_INFO
+            WHEN G.TIME_GRAIN = 'year'    THEN S.YEAR_PERIOD_END_DATE_INFO
         END AS DATE) AS TIME_PERIOD_END,
         G.TIME_GRAIN,
         S.DATE_INFO,
