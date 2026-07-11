@@ -1,6 +1,6 @@
 A dbt-core demonstration repository showcasing **lifecycle event modeling** approaches using DuckDB.
 
-This project implements two complementary strategies for modeling entity lifecycles—tracking how users transition between states (active/inactive) over time—with perfectly reconciled metrics for business reporting.
+This project implements strategies for modeling entity lifecycles—tracking how users transition between states (active/inactive) over time—with perfectly reconciled metrics for business reporting.
 
 ## Quick Start
 
@@ -35,6 +35,11 @@ This project implements **two different strategies** for modeling entity lifecyc
 2. **Period snapshots** (`approach_period_snapshots/`) — Defines movements between snapshot periods (day/week/month/quarter/year) with perfectly reconciled metrics; ideal for executive reporting and financial reconciliation.
 
 Both solve the same core challenge: ensuring that acquisition, churn, and resurrection metrics sum to a valid ledger. See the companion article for the full methodology.
+
+## Skill
+
+A reusable skill is available at `.skill/lifecycle_modeling.skill.md` so any LLM can apply the same lifecycle modeling methodology across projects.
+This skill is based on the **Period snapshots** methodology, which is more reliable when aggregating movements for business monitoring needs and should generally be preferred.
 
 ## Project Structure
 
