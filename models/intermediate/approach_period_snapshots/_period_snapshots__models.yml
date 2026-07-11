@@ -1,11 +1,11 @@
 version: 2
 
 models:
-  - name: int_user_status_build_snapshots
+  - name: int_user_status_snapshots_period
     description: "This model builds snapshots periods for each [user_id] and [time_grain] keeping only start and end dates for each period."
 
-  - name: int_user_status_calculate_movements_2
-    description: "This model calculates the number of users that have been acquired, churned, or resurrected for each [user_id] and [time_grain]."
+  - name: int_user_status_snapshots_period_agg_movements
+    description: "This model calculates the number of users that have been acquired, churned, or resurrected for each [user_id] and [time_grain], built on period snapshots."
     columns:
       - name: FIRST_CHURN_DATE_INFO
         data_tests:
@@ -29,10 +29,9 @@ models:
               config:
                 where: IS_ACQUIRED = TRUE
 
-  - name: int_user_status_period_metrics
+  - name: int_user_status_snapshots_period_agg_metrics
     description: "This model aggregates user movements at the period level for each [time_grain]. It can be useful for high-level reporting or data consistency checks."
     data_tests:
       - dbt_utils.expression_is_true:
           arguments:
             expression: NB_ACTIVE_USERS_PREVIOUS_PERIOD_END + NB_ACQUIRED_USERS + NB_CHURNED_USERS + NB_RESURRECTED_USERS = NB_ACTIVE_USERS_PERIOD_END
-

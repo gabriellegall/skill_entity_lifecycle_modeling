@@ -15,7 +15,7 @@ WITH daily_user_base AS (
         COUNT_IF(EVENT_TYPE = 'acquisition')  AS NB_ACQUIRED_USERS,
         -COUNT_IF(EVENT_TYPE = 'churn')       AS NB_CHURNED_USERS,
         COUNT_IF(EVENT_TYPE = 'resurrection') AS NB_RESURRECTED_USERS
-    FROM {{ ref('int_user_status_calculate_movements_1') }}
+    FROM {{ ref('int_user_status_movements_daily') }}
     GROUP BY 1
 )
 

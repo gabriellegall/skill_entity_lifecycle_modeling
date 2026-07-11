@@ -1,7 +1,7 @@
 {{ config(materialized='view') }}
 
 WITH period_snapshot AS (
-    SELECT * FROM {{ ref('int_user_status_build_snapshots') }}
+    SELECT * FROM {{ ref('int_user_status_snapshots_period') }}
 )
 
 , status_change AS (
@@ -47,6 +47,6 @@ SELECT
     FIRST_RESURRECTION_DATE_INFO,
     IS_CHURNED,
     IS_RESURRECTED,
-    IS_ACQUIRED,
+    IS_ACQUIRED
 FROM events
 WHERE EVENT_TYPE IS NOT NULL -- Only keep movements
