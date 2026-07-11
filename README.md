@@ -50,7 +50,7 @@ models/
 ├── intermediate/
 │   ├── approach_daily_events/                # Approach 1: Simple daily-grain event tracking
 │   │   ├── int_user_status_movements_daily.sql
-│   │   └── int_user_status_movements_daily_agg.sql
+│   │   └── int_user_status_movements_daily_agg_metrics.sql
 │   └── approach_period_snapshots/            # Approach 2: Multi-grain snapshots (week/month/quarter/year)
 │       ├── int_user_status_snapshots_period.sql
 │       ├── int_user_status_snapshots_period_agg_movements.sql
