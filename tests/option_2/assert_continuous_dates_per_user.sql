@@ -1,5 +1,5 @@
 WITH period_snapshot AS (
-    SELECT * FROM {{ ref('int_user_status_build_snapshots') }}
+    SELECT * FROM {{ ref('int_user_status_snapshots_period') }}
 )
 
 , periods_with_lag AS (
