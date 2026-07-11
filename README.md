@@ -1,5 +1,3 @@
-# demo_churn
-
 A dbt-core demonstration repository showcasing **lifecycle event modeling** approaches using DuckDB.
 
 This project implements two complementary strategies for modeling entity lifecycles—tracking how users transition between states (active/inactive) over time—with perfectly reconciled metrics for business reporting.
