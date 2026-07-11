@@ -63,7 +63,7 @@ Column names may vary depending on the project where this is implemented.
 - models/intermediate/approach_period_snapshots/int_user_status_snapshots_period.sql
 - models/intermediate/approach_period_snapshots/int_user_status_snapshots_period_agg_movements.sql
 - models/intermediate/approach_period_snapshots/int_user_status_snapshots_period_agg_metrics.sql
-- tests/option_2/assert_continuous_dates_per_user.sql
+- tests/approach_period_snapshots/assert_continuous_dates_per_user.sql
 - models/intermediate/approach_period_snapshots/_period_snapshots__models.yml
 
 ---
@@ -469,7 +469,7 @@ ORDER BY TIME_GRAIN, TIME_PERIOD_END ASC
 
 Note: model references in this demo SQL are project-specific and may need renaming when implemented elsewhere.
 
-Source: tests/option_2/assert_continuous_dates_per_user.sql
+Source: tests/approach_period_snapshots/assert_continuous_dates_per_user.sql
 
 ```sql
 WITH period_snapshot AS (
