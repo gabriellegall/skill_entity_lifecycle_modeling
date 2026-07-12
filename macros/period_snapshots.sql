@@ -1,17 +1,3 @@
-{% macro get_time_period_end_expr(time_grain, date_expression) -%}
-    {%- if time_grain == 'week' -%}
-        CAST(DATE_TRUNC('week', {{ date_expression }}) AS DATE) + INTERVAL 6 DAY
-    {%- elif time_grain == 'month' -%}
-        LAST_DAY({{ date_expression }})
-    {%- elif time_grain == 'quarter' -%}
-        CAST(DATE_TRUNC('quarter', {{ date_expression }}) AS DATE) + INTERVAL 3 MONTH - INTERVAL 1 DAY
-    {%- elif time_grain == 'year' -%}
-        MAKE_DATE(YEAR({{ date_expression }}), 12, 31)
-    {%- else -%}
-        {{ exceptions.raise_compiler_error('Unsupported time_grain: ' ~ time_grain) }}
-    {%- endif -%}
-{%- endmacro %}
-
 {% macro get_incremental_scan_start_expr(time_grain, date_expression) -%}
     {%- if time_grain == 'week' -%}
         CAST(DATE_TRUNC('week', {{ date_expression }}) AS DATE) - INTERVAL 1 WEEK
@@ -27,6 +13,9 @@
 {%- endmacro %}
 
 {% macro build_period_snapshots_for_grain(time_grain) -%}
+{%- if time_grain not in ['week', 'month', 'quarter', 'year'] -%}
+    {{ exceptions.raise_compiler_error('Unsupported time_grain: ' ~ time_grain) }}
+{%- endif -%}
 WITH source AS (
     SELECT
         USER_ID,
@@ -62,9 +51,16 @@ WITH source AS (
 , transition_periods AS (
     SELECT
         S.USER_ID,
-        CAST(DATE_TRUNC('{{ time_grain }}', S.DATE_INFO) AS DATE)                     AS TIME_PERIOD_START,
-        CAST({{ get_time_period_end_expr(time_grain, 'S.DATE_INFO') }} AS DATE)       AS TIME_PERIOD_END,
-        '{{ time_grain }}'                                                            AS TIME_GRAIN,
+        CAST(DATE_TRUNC('{{ time_grain }}', S.DATE_INFO) AS DATE) AS TIME_PERIOD_START,
+        CAST(
+            CASE
+                WHEN '{{ time_grain }}' = 'week' THEN CAST(DATE_TRUNC('week', S.DATE_INFO) AS DATE) + INTERVAL 6 DAY
+                WHEN '{{ time_grain }}' = 'month' THEN LAST_DAY(S.DATE_INFO)
+                WHEN '{{ time_grain }}' = 'quarter' THEN CAST(DATE_TRUNC('quarter', S.DATE_INFO) AS DATE) + INTERVAL 3 MONTH - INTERVAL 1 DAY
+                WHEN '{{ time_grain }}' = 'year' THEN MAKE_DATE(YEAR(S.DATE_INFO), 12, 31)
+            END AS DATE
+        ) AS TIME_PERIOD_END,
+        '{{ time_grain }}' AS TIME_GRAIN,
         S.DATE_INFO,
         S.PREVIOUS_IS_ACTIVE,
         S.IS_ACTIVE,
@@ -72,7 +68,7 @@ WITH source AS (
     FROM source_window AS S
     CROSS JOIN data_cutoff AS C
     -- Only keep full periods for each time grain
-    WHERE CAST({{ get_time_period_end_expr(time_grain, 'S.DATE_INFO') }} AS DATE) <= C.MAX_AVAILABLE_DATE_INFO
+    WHERE TIME_PERIOD_END <= C.MAX_AVAILABLE_DATE_INFO
 )
 
 -- For each period, collect lifecycle event dates and period-end activity state
