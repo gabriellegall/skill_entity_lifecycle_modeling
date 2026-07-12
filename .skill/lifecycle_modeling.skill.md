@@ -3,28 +3,6 @@
 ## Business Context
 Lifecycle modeling is a universal analytics challenge across industries. Teams need to measure how entities move between states over time, usually to monitor retention, acquisition efficiency, and resurrection performance.
 
-Examples where this methodology applies (non-exhaustive list):
-- B2B SaaS: active workspace seats, expansion, contraction, and account resurrection after cancellation.
-- Consumer subscriptions: active subscribers, churned subscribers, and reactivated subscribers by billing cycle.
-- Banking: active cardholders, dormant accounts, and reactivated users after inactivity periods.
-- Insurance: policy lifecycle transitions such as active, lapsed, renewed, and reinstated.
-- Telecom: SIM or plan activity transitions, including temporary disconnections and reactivations.
-- E-commerce: customer activity lifecycle based on purchase recency windows and return-to-purchase behavior.
-- Marketplaces: buyer or seller activation, inactivity, and return cohorts by region or segment.
-- Gaming: monthly active players, churned players, and resurrected players after content releases.
-- Media and streaming: subscriber and viewer engagement states across weekly or monthly snapshots.
-- Mobility and travel: rider or traveler lifecycle transitions tied to booking behavior.
-- Food delivery: customer ordering lifecycle, lapses, and comeback patterns after CRM campaigns.
-- Healthcare apps: patient engagement status, drop-off, and re-engagement after outreach.
-- Education platforms: learner activity lifecycle, course dropout, and reactivation by term.
-- HR tech: candidate pipeline or employee status lifecycle across hiring and retention funnels.
-- IoT and connected devices: active device fleet, offline churn, and reconnect events.
-- Fintech lending: borrower activity states, repayment dropout, and reactivation in collection programs.
-- Nonprofit and fundraising: donor active status, lapses, and reactivation after campaigns.
-- Utilities: account usage lifecycle with inactive periods and resumed service.
-- Logistics: shipper activity lifecycle and reactivation of dormant accounts.
-- Hospitality: guest lifecycle by stay frequency, inactivity, and return behavior.
-
 ## Positioning
 This skill is intentionally educational. The quoted files below are a demo to showcase the idea and communicate the framework. They are a means, not an end.
 
@@ -44,6 +22,11 @@ At minimum, the source data should provide:
 - an entity identifier (for example: USER_ID),
 - a snapshot date (for example: DATE_INFO),
 - a status/state signal (for example: STATUS) from which active/inactive logic can be derived.
+
+Key assumptions for this contract (derived from implemented models and tests):
+- Exactly one row per (USER_ID, DATE_INFO, STATUS)
+- Per-user daily histories are continuous (no missing days between observed dates)
+- Users are expected to have aligned history depth: each USER_ID is observed across the same DATE_INFO coverage window (same start and end boundaries).
 
 ## Expected Output Contract
 The target output is akin to int_user_status_snapshots_period_agg_movements.
