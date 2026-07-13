@@ -34,8 +34,6 @@ This project implements **two different strategies** for modeling entity lifecyc
 1. **Daily events** (`approach_daily_events/`) — Classifies movements at daily granularity; ideal for operational dashboards and real-time event tracking.
 2. **Period snapshots** (`approach_period_snapshots/`) — Defines movements between snapshot periods (day/week/month/quarter/year) with perfectly reconciled metrics; ideal for executive reporting and financial reconciliation.
 
-Both solve the same core challenge: ensuring that acquisition, churn, and resurrection metrics sum to a valid ledger. See the companion article for the full methodology.
-
 ## Skill
 
 A reusable skill is available at `.skill/lifecycle_modeling.skill.md` so any LLM can apply the same lifecycle modeling methodology across projects.
